@@ -79,14 +79,6 @@ def validate_activity_in_template(output_dir, activity_key, activity_type):
     log(f"Activity gefunden: {activity_key}", "OK")
     return True
 
-def validate_xml_element(tree, xpath, element_name):
-    """Prüft, ob ein XML-Element existiert"""
-    root = tree.getroot()
-    elem = root.find(xpath)
-    if elem is None:
-        raise ValidationError(f"XML-Element nicht gefunden: {element_name} (XPath: {xpath})")
-    return elem
-
 # ============================================================================
 # XML-HELPER
 # ============================================================================
