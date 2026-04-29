@@ -5,14 +5,17 @@
   },
   "activities": {
     "page_3": {
+      "type": "page",
       "name": "Einführung in Brüche",
       "content_html": "<h1>Brüche verstehen</h1><p>Ein Bruch beschreibt einen Teil eines Ganzen. Wenn du ein Ganzes in gleich große Teile teilst und einige davon nimmst, erhältst du einen Bruch.</p><p><strong>Beispiel:</strong> 1/2 bedeutet: ein Ganzes wird in 2 Teile geteilt, wir nehmen 1 davon.</p>"
     },
     "assign_4": {
+      "type": "assign",
       "name": "Aufgabe: Brüche erkennen",
       "intro_html": "<p>Identifiziere die Brüche in den folgenden Bildern und schreibe sie in der Form a/b auf.</p>"
     },
     "quiz_5": {
+      "type": "quiz",
       "name": "Quiz: Bruchrechnung Basics",
       "questions": [
         {

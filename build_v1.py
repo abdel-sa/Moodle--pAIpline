@@ -296,13 +296,13 @@ def patch_activities_v1(output_dir, input_data):
         return
     
     for activity_key, activity_data in activities.items():
-        activity_type = activity_data.get("type", None)
-        
-        # Versuche zu erraten, ob type fehlt
+        activity_type = activity_data.get("type")
         if not activity_type:
-            if "_" in activity_key:
-                activity_type = activity_key.split("_")[0]  # "page_3" → "page"
-        
+            raise ValidationError(
+                f"Activity '{activity_key}' hat kein 'type'-Feld. "
+                f"Erlaubt: 'page', 'assign', 'quiz'."
+            )
+
         log(f"\nPatche Activity: {activity_key} (Typ: {activity_type})")
         
         # Prüfe, ob Activity existiert
