@@ -87,23 +87,6 @@ def validate_xml_element(tree, xpath, element_name):
     return elem
 
 # ============================================================================
-# HELPER: HTML ESCAPING
-# ============================================================================
-
-def escape_html_for_xml(text):
-    """Escapt HTML für XML-Einbettung."""
-    if text is None:
-        return ""
-    text = str(text)
-    # WICHTIG: & muss ZUERST kommen!
-    text = text.replace("&", "&amp;")
-    text = text.replace("<", "&lt;")
-    text = text.replace(">", "&gt;")
-    text = text.replace('"', "&quot;")
-    text = text.replace("'", "&apos;")
-    return text
-
-# ============================================================================
 # XML-HELPER
 # ============================================================================
 
@@ -146,9 +129,8 @@ def patch_page_activity(page_xml_path, page_data):
         content_elem = root.find(".//content")
         if content_elem is None:
             raise ValidationError(f"<content> nicht gefunden in {page_xml_path}")
-        escaped = escape_html_for_xml(page_data["content_html"])
-        content_elem.text = escaped
-        log(f"  → <content> updated ({len(escaped)} chars)", "OK")
+        content_elem.text = page_data["content_html"]
+        log(f"  → <content> updated ({len(page_data['content_html'])} chars)", "OK")
     
     write_xml_file(page_xml_path, tree)
 
@@ -174,9 +156,8 @@ def patch_assign_activity(assign_xml_path, assign_data):
         intro_elem = root.find(".//intro")
         if intro_elem is None:
             raise ValidationError(f"<intro> nicht gefunden in {assign_xml_path}")
-        escaped = escape_html_for_xml(assign_data["intro_html"])
-        intro_elem.text = escaped
-        log(f"  → <intro> updated ({len(escaped)} chars)", "OK")
+        intro_elem.text = assign_data["intro_html"]
+        log(f"  → <intro> updated ({len(assign_data['intro_html'])} chars)", "OK")
     
     write_xml_file(assign_xml_path, tree)
 
@@ -225,8 +206,7 @@ def patch_quiz_questions(questions_xml_path, questions_data):
         # Update <questiontext>
         qt_elem = q.find("questiontext")
         if qt_elem is not None:
-            escaped_qt = escape_html_for_xml(q_text)
-            qt_elem.text = escaped_qt
+            qt_elem.text = q_text
         
         # Ersetze <answers>
         answers_elem = q.find("answers")
@@ -244,7 +224,7 @@ def patch_quiz_questions(questions_xml_path, questions_data):
                 answer_elem.set("id", str(idx))
                 
                 text_elem = etree.SubElement(answer_elem, "text")
-                text_elem.text = escape_html_for_xml(answer_text)
+                text_elem.text = answer_text
                 
                 fraction_elem = etree.SubElement(answer_elem, "fraction")
                 fraction_elem.text = str(fraction)
