@@ -1,0 +1,11 @@
+out_build/
+generated_course.mbz
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+*.egg-info/
+.DS_Store
+Thumbs.db
