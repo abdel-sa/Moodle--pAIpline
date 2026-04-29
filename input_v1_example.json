@@ -1,0 +1,88 @@
+{
+  "course_metadata": {
+    "fullname": "Bruchrechnung – Kompletter Kurs",
+    "shortname": "bruche_vollkurs"
+  },
+  "activities": {
+    "page_3": {
+      "type": "page",
+      "name": "Lektion 1: Einführung in Brüche",
+      "content_html": "<h1>Was sind Brüche?</h1><p>Ein Bruch beschreibt einen Teil eines Ganzen.</p><ul><li>Zähler (oben): wie viele Teile wir nehmen</li><li>Nenner (unten): in wie viele gleiche Teile das Ganze aufgeteilt wird</li></ul><p><strong>Beispiel:</strong> 3/4 bedeutet: Ganze in 4 Teile teilen, 3 davon nehmen</p><h2>Visualisierung</h2><p><em>(Bild würde hier sein, aber HTML-Text nur)</em></p>"
+    },
+    "assign_4": {
+      "type": "assign",
+      "name": "Aufgabe 1: Brüche identifizieren",
+      "intro_html": "<p>Schreibe die Brüche auf, die in den folgenden Grafiken gezeigt werden:</p><ol><li>Ein Kreis mit 2 Scheiben von 4</li><li>Ein Rechteck mit 3 Teilen von 5</li></ol><p>Deadline: nächste Woche</p>"
+    },
+    "quiz_5": {
+      "type": "quiz",
+      "name": "Quiz: Bruchrechnung Basics",
+      "questions": [
+        {
+          "qbe_id": 1,
+          "question_id": 1,
+          "name": "Frage 1: Addition von Brüchen",
+          "questiontext_html": "<p>Berechne: 1/2 + 1/4 = ?</p>",
+          "answers": [
+            {
+              "text_html": "<p>3/4</p>",
+              "fraction": 1.0
+            },
+            {
+              "text_html": "<p>1/6</p>",
+              "fraction": 0.0
+            },
+            {
+              "text_html": "<p>2/6</p>",
+              "fraction": 0.0
+            },
+            {
+              "text_html": "<p>2/8</p>",
+              "fraction": 0.0
+            }
+          ]
+        },
+        {
+          "qbe_id": 2,
+          "question_id": 2,
+          "name": "Frage 2: Bruch vereinfachen",
+          "questiontext_html": "<p>Vereinfache 4/8 in die kürzeste Form:</p>",
+          "answers": [
+            {
+              "text_html": "<p>1/2</p>",
+              "fraction": 1.0
+            },
+            {
+              "text_html": "<p>2/4</p>",
+              "fraction": 0.5
+            },
+            {
+              "text_html": "<p>4/8</p>",
+              "fraction": 0.0
+            }
+          ]
+        },
+        {
+          "qbe_id": 3,
+          "question_id": 3,
+          "name": "Frage 3: Multiplikation",
+          "questiontext_html": "<p>1/2 × 2/3 = ?</p>",
+          "answers": [
+            {
+              "text_html": "<p>2/6 = 1/3</p>",
+              "fraction": 1.0
+            },
+            {
+              "text_html": "<p>3/5</p>",
+              "fraction": 0.0
+            },
+            {
+              "text_html": "<p>1/5</p>",
+              "fraction": 0.0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
