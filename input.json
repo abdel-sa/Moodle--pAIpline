@@ -1,7 +1,12 @@
 {
   "course_metadata": {
     "fullname": "Brüche - Einführung",
-    "shortname": "bruche_intro"
+    "shortname": "bruche_intro",
+    "summary": "<p>Einführungskurs in die Welt der Brüche. Geeignet für die 5. Klasse.</p>",
+    "lang": "de",
+    "visible": true,
+    "startdate": "2026-05-01",
+    "enddate": "2026-07-31"
   },
   "activities": {
     "page_3": {
