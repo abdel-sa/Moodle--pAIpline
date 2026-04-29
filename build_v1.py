@@ -269,18 +269,12 @@ def patch_course_metadata(output_dir, metadata):
     tree = parse_xml_file(course_xml)
     root = tree.getroot()
 
-    # Einfache Text-Felder
-    simple_fields = {
-        "fullname": metadata.get("fullname"),
-        "shortname": metadata.get("shortname"),
-        "lang": metadata.get("lang"),
-    }
-    for tag, value in simple_fields.items():
-        if value is not None:
+    for tag in ("fullname", "shortname", "lang"):
+        if tag in metadata:
             elem = root.find(tag)
             if elem is not None:
-                elem.text = str(value)
-                log(f"  → <{tag}> = {value}", "OK")
+                elem.text = str(metadata[tag])
+                log(f"  → <{tag}> = {metadata[tag]}", "OK")
 
     # Summary (HTML erlaubt, lxml escaped automatisch)
     if "summary" in metadata:
