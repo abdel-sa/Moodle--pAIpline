@@ -258,6 +258,32 @@ def copy_template(template_dir, output_dir):
     shutil.copytree(template_dir, output_dir)
     log(f"Template kopiert", "OK")
 
+def patch_course_metadata(output_dir, metadata):
+    """Patcht course/course.xml mit fullname und shortname aus input.json."""
+    course_xml = os.path.join(output_dir, "course", "course.xml")
+    if not os.path.exists(course_xml):
+        log("course/course.xml nicht gefunden, überspringe Metadata-Patch", "WARN")
+        return
+
+    log(f"Patche Kurs-Metadata: {course_xml}")
+    tree = parse_xml_file(course_xml)
+    root = tree.getroot()
+
+    if "fullname" in metadata:
+        elem = root.find("fullname")
+        if elem is not None:
+            elem.text = metadata["fullname"]
+            log(f"  → <fullname> = {metadata['fullname']}", "OK")
+
+    if "shortname" in metadata:
+        elem = root.find("shortname")
+        if elem is not None:
+            elem.text = metadata["shortname"]
+            log(f"  → <shortname> = {metadata['shortname']}", "OK")
+
+    write_xml_file(course_xml, tree)
+
+
 def patch_activities_v1(output_dir, input_data):
     """
     V1: Unterstützt mehrere Activities und flexible Keys.
@@ -348,12 +374,20 @@ def main():
         print("\n[3] Template kopieren")
         copy_template(TEMPLATE_DIR, OUTPUT_DIR)
         
-        # 4. Activities patchen
-        print("\n[4] Activities patchen")
+        # 4. Kurs-Metadata patchen
+        print("\n[4] Kurs-Metadata patchen")
+        metadata = input_data.get("course_metadata", {})
+        if metadata:
+            patch_course_metadata(OUTPUT_DIR, metadata)
+        else:
+            log("Keine course_metadata in input.json, überspringe", "WARN")
+
+        # 5. Activities patchen
+        print("\n[5] Activities patchen")
         patch_activities_v1(OUTPUT_DIR, input_data)
         
-        # 5. MBZ erstellen
-        print("\n[5] .mbz-Datei erstellen")
+        # 6. MBZ erstellen
+        print("\n[6] .mbz-Datei erstellen")
         create_mbz(OUTPUT_DIR, OUTPUT_MBZ)
         
         # Erfolg
