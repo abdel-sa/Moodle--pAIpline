@@ -11,6 +11,7 @@ import shutil
 import os
 import zipfile
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from lxml import etree
 
@@ -258,8 +259,25 @@ def copy_template(template_dir, output_dir):
     shutil.copytree(template_dir, output_dir)
     log(f"Template kopiert", "OK")
 
+def _iso_to_unix(date_str):
+    """Konvertiert ISO-Datum ("2026-05-01") zu Unix-Timestamp (int)."""
+    dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return int(dt.timestamp())
+
+
 def patch_course_metadata(output_dir, metadata):
-    """Patcht course/course.xml mit fullname und shortname aus input.json."""
+    """
+    Patcht course/course.xml mit Werten aus input.json course_metadata.
+
+    Unterstützte Felder:
+      fullname   str   Voller Kursname
+      shortname  str   Kurzkürzel (keine Leerzeichen)
+      summary    str   HTML-Beschreibung (wird auf der Kursseite angezeigt)
+      lang       str   Sprachcode, z.B. "de" oder "en"
+      visible    bool  Kurs sichtbar (true) oder versteckt (false)
+      startdate  str   ISO-Datum "YYYY-MM-DD" → Unix-Timestamp
+      enddate    str   ISO-Datum "YYYY-MM-DD" → Unix-Timestamp (0 = kein Ende)
+    """
     course_xml = os.path.join(output_dir, "course", "course.xml")
     if not os.path.exists(course_xml):
         log("course/course.xml nicht gefunden, überspringe Metadata-Patch", "WARN")
@@ -269,17 +287,48 @@ def patch_course_metadata(output_dir, metadata):
     tree = parse_xml_file(course_xml)
     root = tree.getroot()
 
-    if "fullname" in metadata:
-        elem = root.find("fullname")
-        if elem is not None:
-            elem.text = metadata["fullname"]
-            log(f"  → <fullname> = {metadata['fullname']}", "OK")
+    # Einfache Text-Felder
+    simple_fields = {
+        "fullname": metadata.get("fullname"),
+        "shortname": metadata.get("shortname"),
+        "lang": metadata.get("lang"),
+    }
+    for tag, value in simple_fields.items():
+        if value is not None:
+            elem = root.find(tag)
+            if elem is not None:
+                elem.text = str(value)
+                log(f"  → <{tag}> = {value}", "OK")
 
-    if "shortname" in metadata:
-        elem = root.find("shortname")
+    # Summary (HTML erlaubt, lxml escaped automatisch)
+    if "summary" in metadata:
+        elem = root.find("summary")
         if elem is not None:
-            elem.text = metadata["shortname"]
-            log(f"  → <shortname> = {metadata['shortname']}", "OK")
+            elem.text = metadata["summary"]
+            log(f"  → <summary> updated ({len(metadata['summary'])} chars)", "OK")
+
+    # Visible (bool → "1" / "0")
+    if "visible" in metadata:
+        elem = root.find("visible")
+        if elem is not None:
+            elem.text = "1" if metadata["visible"] else "0"
+            log(f"  → <visible> = {elem.text}", "OK")
+
+    # Datum-Felder: ISO-String "YYYY-MM-DD" → Unix-Timestamp
+    for date_field in ("startdate", "enddate"):
+        if date_field in metadata:
+            raw = metadata[date_field]
+            try:
+                ts = _iso_to_unix(raw)
+            except ValueError:
+                raise ValidationError(
+                    f"course_metadata.{date_field}: ungültiges Datumsformat '{raw}'. "
+                    f"Erwartet: YYYY-MM-DD"
+                )
+            elem = root.find(date_field)
+            if elem is not None:
+                elem.text = str(ts)
+                log(f"  → <{date_field}> = {ts} ({raw})", "OK")
 
     write_xml_file(course_xml, tree)
 
