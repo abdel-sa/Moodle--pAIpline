@@ -60,10 +60,37 @@ Beispiel `input.json`:
 
 ---
 
+**`generate_content.py` – echte LLM-Integration** (`generate_content.py`)
+
+Ersetzt den toten statischen Stub durch einen funktionierenden LLM-Content-Generator.
+Topic rein → fertig strukturiertes `input.json` raus, direkt für `build_v1.py` nutzbar.
+
+Unterstützte Provider (beide kostenlos):
+
+| Provider | Typ | API-Key | Setup |
+|---|---|---|---|
+| **Ollama** | lokal | keiner | `ollama pull llama3.2` |
+| **Groq** | Cloud | `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) |
+
+Auto-Auswahl: Groq wenn `GROQ_API_KEY` gesetzt, sonst Ollama.
+
+```bash
+python generate_content.py "Photosynthese"
+python generate_content.py "Pythagoras" --provider groq --out kurs.json
+```
+
+**`validate.py` + `verify.py` zusammengeführt**
+
+Beide Skripte machten Datei-Checks mit überlappender Logik. Zusammengeführt zu einem
+einzigen `validate.py` das alles prüft: Projektdateien, Template-Backup, input.json
+Struktur, Python-Syntax, Abhängigkeiten, Ollama-Status, Groq-Key-Präsenz.
+`verify.py` wurde gelöscht.
+
+---
+
 ## Geplant (nächste Schritte)
 
-- **LLM-Integration**: Topic-String rein → fertiges `input.json` raus (Claude API)
 - **Section-Titel patchen**: `sections/section_X/section.xml` mit Namen aus `input.json`
 - **Batch-Mode**: CSV mit Topics → mehrere `.mbz`-Dateien auf einmal
-- **CLI mit argparse**: `python build_v1.py --input mein_kurs.json --template ./backup`
-- **`validate.py` / `verify.py` zusammenführen**: beide machen Datei-Checks, einer reicht
+- **CLI mit argparse für build_v1.py**: `python build_v1.py --input mein_kurs.json --template ./backup`
+- **Docs aufräumen**: 10+ Markdown-Dateien auf ein gutes README reduzieren
