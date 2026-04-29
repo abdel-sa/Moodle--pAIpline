@@ -12,7 +12,6 @@ import os
 import zipfile
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
 from lxml import etree
 
 # ============================================================================
