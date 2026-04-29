@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<users>
+  <user id="2" contextid="5">
+    <username>moodleadmin</username>
+    <idnumber></idnumber>
+    <email>rahman.salama78@gmail.com</email>
+    <phone1></phone1>
+    <phone2></phone2>
+    <institution></institution>
+    <department></department>
+    <address></address>
+    <city>Wien</city>
+    <country>AT</country>
+    <lastip>0:0:0:0:0:0:0:1</lastip>
+    <picture>0</picture>
+    <description></description>
+    <descriptionformat>1</descriptionformat>
+    <imagealt>$@NULL@$</imagealt>
+    <auth>manual</auth>
+    <firstnamephonetic></firstnamephonetic>
+    <lastnamephonetic></lastnamephonetic>
+    <middlename></middlename>
+    <alternatename></alternatename>
+    <firstname>Abdelrahman</firstname>
+    <lastname>Salama</lastname>
+    <confirmed>1</confirmed>
+    <policyagreed>0</policyagreed>
+    <deleted>0</deleted>
+    <lang>en</lang>
+    <theme></theme>
+    <timezone>99</timezone>
+    <firstaccess>1768513327</firstaccess>
+    <lastaccess>1768515316</lastaccess>
+    <lastlogin>0</lastlogin>
+    <currentlogin>1768513327</currentlogin>
+    <mailformat>1</mailformat>
+    <maildigest>0</maildigest>
+    <maildisplay>2</maildisplay>
+    <autosubscribe>1</autosubscribe>
+    <trackforums>0</trackforums>
+    <timecreated>0</timecreated>
+    <timemodified>1768513549</timemodified>
+    <trustbitmask>0</trustbitmask>
+    <custom_fields>
+    </custom_fields>
+    <tags>
+    </tags>
+    <preferences>
+      <preference id="1">
+        <name>core_message_migrate_data</name>
+        <value>1</value>
+      </preference>
+      <preference id="2">
+        <name>auth_manual_passwordupdatetime</name>
+        <value>1768513549</value>
+      </preference>
+      <preference id="3">
+        <name>email_bounce_count</name>
+        <value>1</value>
+      </preference>
+      <preference id="4">
+        <name>email_send_count</name>
+        <value>1</value>
+      </preference>
+      <preference id="5">
+        <name>core_user_welcome</name>
+        <value>1768513814</value>
+      </preference>
+      <preference id="6">
+        <name>login_failed_count_since_success</name>
+        <value>0</value>
+      </preference>
+      <preference id="7">
+        <name>tool_usertours_tour_completion_time_5</name>
+        <value>1768513845</value>
+      </preference>
+      <preference id="8">
+        <name>drawer-open-index</name>
+        <value>1</value>
+      </preference>
+      <preference id="9">
+        <name>tool_usertours_tour_completion_time_3</name>
+        <value>1768514133</value>
+      </preference>
+      <preference id="10">
+        <name>coursesectionspreferences_3</name>
+        <value>{"contentcollapsed":[]}</value>
+      </preference>
+      <preference id="11">
+        <name>qtype_multichoice_defaultmark</name>
+        <value>1</value>
+      </preference>
+      <preference id="12">
+        <name>qtype_multichoice_penalty</name>
+        <value>0.3333333</value>
+      </preference>
+      <preference id="13">
+        <name>qtype_multichoice_single</name>
+        <value>1</value>
+      </preference>
+      <preference id="14">
+        <name>qtype_multichoice_shuffleanswers</name>
+        <value>1</value>
+      </preference>
+      <preference id="15">
+        <name>qtype_multichoice_answernumbering</name>
+        <value>abc</value>
+      </preference>
+      <preference id="16">
+        <name>qtype_multichoice_showstandardinstruction</name>
+        <value>0</value>
+      </preference>
+    </preferences>
+    <roles>
+      <role_overrides>
+      </role_overrides>
+      <role_assignments>
+      </role_assignments>
+    </roles>
+  </user>
+</users>

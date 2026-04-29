@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<activity_gradebook>
+  <grade_items>
+    <grade_item id="2">
+      <categoryid>1</categoryid>
+      <itemname>Brüche erklären</itemname>
+      <itemtype>mod</itemtype>
+      <itemmodule>assign</itemmodule>
+      <iteminstance>1</iteminstance>
+      <itemnumber>0</itemnumber>
+      <iteminfo>$@NULL@$</iteminfo>
+      <idnumber></idnumber>
+      <calculation>$@NULL@$</calculation>
+      <gradetype>1</gradetype>
+      <grademax>100.00000</grademax>
+      <grademin>0.00000</grademin>
+      <scaleid>$@NULL@$</scaleid>
+      <outcomeid>$@NULL@$</outcomeid>
+      <gradepass>0.00000</gradepass>
+      <multfactor>1.00000</multfactor>
+      <plusfactor>0.00000</plusfactor>
+      <aggregationcoef>0.00000</aggregationcoef>
+      <aggregationcoef2>0.90909</aggregationcoef2>
+      <weightoverride>0</weightoverride>
+      <sortorder>2</sortorder>
+      <display>0</display>
+      <decimals>$@NULL@$</decimals>
+      <hidden>0</hidden>
+      <locked>0</locked>
+      <locktime>0</locktime>
+      <needsupdate>0</needsupdate>
+      <timecreated>1768514878</timecreated>
+      <timemodified>1768514934</timemodified>
+      <grade_grades>
+        <grade_grade id="3">
+          <userid>2</userid>
+          <rawgrade>$@NULL@$</rawgrade>
+          <rawgrademax>100.00000</rawgrademax>
+          <rawgrademin>0.00000</rawgrademin>
+          <rawscaleid>$@NULL@$</rawscaleid>
+          <usermodified>$@NULL@$</usermodified>
+          <finalgrade>$@NULL@$</finalgrade>
+          <hidden>0</hidden>
+          <locked>0</locked>
+          <locktime>0</locktime>
+          <exported>0</exported>
+          <overridden>0</overridden>
+          <excluded>0</excluded>
+          <feedback>$@NULL@$</feedback>
+          <feedbackformat>2</feedbackformat>
+          <information>$@NULL@$</information>
+          <informationformat>2</informationformat>
+          <timecreated>$@NULL@$</timecreated>
+          <timemodified>$@NULL@$</timemodified>
+          <aggregationstatus>novalue</aggregationstatus>
+          <aggregationweight>0.00000</aggregationweight>
+        </grade_grade>
+      </grade_grades>
+    </grade_item>
+  </grade_items>
+  <grade_letters>
+  </grade_letters>
+</activity_gradebook>

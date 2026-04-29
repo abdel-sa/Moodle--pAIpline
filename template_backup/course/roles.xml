@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<roles>
+  <role_overrides>
+  </role_overrides>
+  <role_assignments>
+    <assignment id="2">
+      <roleid>3</roleid>
+      <userid>2</userid>
+      <timemodified>1768514550</timemodified>
+      <modifierid>2</modifierid>
+      <component></component>
+      <itemid>0</itemid>
+      <sortorder>0</sortorder>
+    </assignment>
+  </role_assignments>
+</roles>
