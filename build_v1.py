@@ -24,14 +24,8 @@ OUTPUT_MBZ = "generated_course.mbz"
 INPUT_FILE = "input.json"
 
 def log(msg, level="INFO"):
-    """Logging mit Timestamps"""
-    prefix = {
-        "INFO": "ℹ️ ",
-        "OK": "✓ ",
-        "WARN": "⚠️ ",
-        "ERROR": "❌ "
-    }
-    print(f"{prefix.get(level, '')} {msg}")
+    prefixes = {"OK": "✓ ", "WARN": "⚠ ", "ERROR": "✗ "}
+    print(f"{prefixes.get(level, '  ')}{msg}")
 
 # ============================================================================
 # VALIDIERUNG
