@@ -24,9 +24,6 @@ OUTPUT_DIR = "out_build"
 OUTPUT_MBZ = "generated_course.mbz"
 INPUT_FILE = "input.json"
 
-# Logging
-DEBUG = True
-
 def log(msg, level="INFO"):
     """Logging mit Timestamps"""
     prefix = {
