@@ -219,25 +219,52 @@ def validate_output(data: dict) -> None:
 # HAUPTFUNKTION
 # ============================================================================
 
+MAX_RETRIES = 3
+
 def generate(topic: str, provider: str, model: str | None, api_key: str | None) -> dict:
-    """Generiert ein vollständiges input.json für das gegebene Topic."""
+    """
+    Generiert ein vollständiges input.json für das gegebene Topic.
+    Bei ungültigem JSON-Output wird bis zu MAX_RETRIES Mal erneut versucht,
+    wobei der fehlerhafte Output als Feedback an das Modell zurückgegeben wird.
+    """
+    if provider == "groq" and not api_key:
+        raise RuntimeError(
+            "Groq benötigt einen API-Key.\n"
+            "Setze: export GROQ_API_KEY=gsk_...\n"
+            "Kostenlos unter: https://console.groq.com"
+        )
+
     prompt = build_prompt(topic)
+    last_error = None
 
-    if provider == "groq":
-        if not api_key:
-            raise RuntimeError(
-                "Groq benötigt einen API-Key.\n"
-                "Setze: export GROQ_API_KEY=gsk_...\n"
-                "Kostenlos unter: https://console.groq.com"
+    for attempt in range(1, MAX_RETRIES + 1):
+        if attempt > 1:
+            print(f"  → Versuch {attempt}/{MAX_RETRIES} (Fehler: {last_error})")
+            prompt = (
+                f"{build_prompt(topic)}\n\n"
+                f"WICHTIG: Dein letzter Versuch war ungültig: {last_error}\n"
+                f"Antworte ausschließlich mit dem JSON-Objekt. Kein Markdown, kein Text davor oder danach."
             )
-        raw = call_groq(prompt, model or GROQ_DEFAULT_MODEL, api_key)
-    else:
-        raw = call_ollama(prompt, model or OLLAMA_DEFAULT_MODEL)
 
-    print("  → Antwort empfangen, parse JSON...")
-    data = extract_json(raw)
-    validate_output(data)
-    return data
+        if provider == "groq":
+            raw = call_groq(prompt, model or GROQ_DEFAULT_MODEL, api_key)
+        else:
+            raw = call_ollama(prompt, model or OLLAMA_DEFAULT_MODEL)
+
+        print("  → Antwort empfangen, parse JSON...")
+        try:
+            data = extract_json(raw)
+            validate_output(data)
+            if attempt > 1:
+                print(f"  → Erfolgreich nach {attempt} Versuchen.", )
+            return data
+        except ValueError as e:
+            last_error = str(e)[:120]
+
+    raise RuntimeError(
+        f"LLM hat nach {MAX_RETRIES} Versuchen kein valides JSON geliefert.\n"
+        f"Letzter Fehler: {last_error}"
+    )
 
 
 # ============================================================================
@@ -297,10 +324,7 @@ Provider:
         print(f"\nNächster Schritt: python build_v1.py")
 
     except RuntimeError as e:
-        print(f"\n✗ Verbindungsfehler: {e}", file=sys.stderr)
-        sys.exit(1)
-    except ValueError as e:
-        print(f"\n✗ LLM-Output ungültig: {e}", file=sys.stderr)
+        print(f"\n✗ Fehler: {e}", file=sys.stderr)
         sys.exit(1)
 
 
