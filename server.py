@@ -3,6 +3,10 @@ import sys
 import asyncio
 import shutil
 from pathlib import Path
+
+# Windows: SelectorEventLoop doesn't support subprocesses — ProactorEventLoop required
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -55,9 +59,13 @@ async def stream_subprocess(cmd: List[str], cwd: str = "."):
     await manager.broadcast(f"> Running command: {' '.join(cmd)}\n")
     
     try:
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        
         running_process = await asyncio.create_subprocess_exec(
             *cmd,
             cwd=cwd,
+            env=env,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             stdin=asyncio.subprocess.PIPE
@@ -76,7 +84,9 @@ async def stream_subprocess(cmd: List[str], cwd: str = "."):
         await manager.broadcast(f"\n[Process finished with exit code {running_process.returncode}]\n")
         
     except Exception as e:
-        await manager.broadcast(f"\n[Error running process: {str(e)}]\n")
+        import traceback
+        err_msg = traceback.format_exc()
+        await manager.broadcast(f"\n[Error running process: {repr(e)}\n{err_msg}]\n")
     finally:
         running_process = None
 
