@@ -4,8 +4,9 @@ import os
 import argparse
 import re
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 from pathlib import Path
+from lxml import etree
 
 
 def read_chapter_file(filepath: str) -> str:
@@ -493,7 +494,6 @@ def _prompt_numerical(topic: str, num_questions: int) -> str:
 
 
 def init_moodle_xml():
-    from lxml import etree
     return etree.Element("quiz")
 
 
@@ -529,8 +529,6 @@ def _escape_xml(text: str) -> str:
 
 
 def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    from lxml import etree
-    
     question = etree.SubElement(xml_root, "question")
     question.set("type", "multichoice")
     
@@ -572,8 +570,6 @@ def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str,
 
 
 def add_coderunner_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    from lxml import etree
-    
     question = etree.SubElement(xml_root, "question")
     question.set("type", "shortanswer")
     
@@ -598,8 +594,6 @@ def add_coderunner_question(xml_root, question_data: Dict[str, Any], category_pa
 
 
 def add_gapfill_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    from lxml import etree
-    
     question = etree.SubElement(xml_root, "question")
     question.set("type", "shortanswer")
     
@@ -624,8 +618,6 @@ def add_gapfill_question(xml_root, question_data: Dict[str, Any], category_path:
 
 
 def add_matching_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    from lxml import etree
-    
     question = etree.SubElement(xml_root, "question")
     question.set("type", "matching")
     
@@ -658,8 +650,6 @@ def add_matching_question(xml_root, question_data: Dict[str, Any], category_path
 
 
 def add_numerical_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    from lxml import etree
-    
     question = etree.SubElement(xml_root, "question")
     question.set("type", "numerical")
     
@@ -688,8 +678,6 @@ def add_numerical_question(xml_root, question_data: Dict[str, Any], category_pat
 
 
 def save_moodle_xml(xml_root, output_file: str) -> None:
-    from lxml import etree
-    
     tree = etree.ElementTree(xml_root)
     tree.write(
         output_file,
