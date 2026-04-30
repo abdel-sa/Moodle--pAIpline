@@ -95,14 +95,6 @@ def call_llm(prompt: str, model: str = "mistral") -> str:
         )
 
 
-def call_llm_planner(prompt: str, model: str = "mistral") -> str:
-    """
-    Wrapper function to call the LLM specifically for the planning phase.
-    Delegates to the universal call_llm function.
-    """
-    return call_llm(prompt, model=model)
-
-
 def plan_command(
     chapter_file: str,
     title: str,
@@ -166,7 +158,7 @@ WICHTIG:
 - NUR gültiges JSON, keine Markdown!"""
     
     try:
-        response = call_llm_planner(planner_prompt, model=model)
+        response = call_llm(planner_prompt, model=model)
         
         if "```json" in response:
             response = response.split("```json")[1].split("```")[0]
