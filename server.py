@@ -3,10 +3,6 @@ import sys
 import asyncio
 import shutil
 from pathlib import Path
-
-# Windows: SelectorEventLoop doesn't support subprocesses — ProactorEventLoop required
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -211,4 +207,13 @@ async def download_file(filename: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)
+    if sys.platform == "win32":
+        # SelectorEventLoop (Windows default) doesn't support subprocesses.
+        # Explicitly create a ProactorEventLoop and run uvicorn on it.
+        loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(loop)
+        config = uvicorn.Config(app, host="127.0.0.1", port=8000, reload=False)
+        server_instance = uvicorn.Server(config)
+        loop.run_until_complete(server_instance.serve())
+    else:
+        uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)
