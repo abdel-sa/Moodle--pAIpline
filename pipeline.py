@@ -516,17 +516,6 @@ def add_question_from_json(
         add_numerical_question(xml_root, question_data, category_path, question_id)
 
 
-def _escape_xml(text: str) -> str:
-    if not text:
-        return ""
-    text = str(text)
-    text = text.replace("&", "&amp;")
-    text = text.replace("<", "&lt;")
-    text = text.replace(">", "&gt;")
-    text = text.replace('"', "&quot;")
-    text = text.replace("'", "&apos;")
-    return text
-
 
 def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
     question = etree.SubElement(xml_root, "question")
@@ -534,12 +523,12 @@ def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str,
     
     name = etree.SubElement(question, "name")
     name_text = etree.SubElement(name, "text")
-    name_text.text = _escape_xml(question_data.get("name", f"Frage {question_id}"))
+    name_text.text = str(question_data.get("name", f"Frage {question_id}"))
     
     questiontext = etree.SubElement(question, "questiontext")
     questiontext.set("format", "html")
     qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = _escape_xml(question_data.get("questiontext", ""))
+    qt_text.text = str(question_data.get("questiontext", ""))
     
     shuffleanswers = etree.SubElement(question, "shuffleanswers")
     shuffleanswers.text = "1"
@@ -557,7 +546,7 @@ def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str,
         answer.set("format", "html")
         
         answer_text = etree.SubElement(answer, "text")
-        answer_text.text = _escape_xml(answer_data.get("text", ""))
+        answer_text.text = str(answer_data.get("text", ""))
         
         feedback = etree.SubElement(answer, "feedback")
         feedback.set("format", "html")
@@ -566,7 +555,7 @@ def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str,
     
     category = etree.SubElement(question, "category")
     category_text = etree.SubElement(category, "text")
-    category_text.text = _escape_xml(category_path)
+    category_text.text = str(category_path)
 
 
 def add_coderunner_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
@@ -575,12 +564,12 @@ def add_coderunner_question(xml_root, question_data: Dict[str, Any], category_pa
     
     name = etree.SubElement(question, "name")
     name_text = etree.SubElement(name, "text")
-    name_text.text = _escape_xml(question_data.get("name", f"CodeRunner {question_id}"))
+    name_text.text = str(question_data.get("name", f"CodeRunner {question_id}"))
     
     questiontext = etree.SubElement(question, "questiontext")
     questiontext.set("format", "html")
     qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = _escape_xml(question_data.get("questiontext", ""))
+    qt_text.text = str(question_data.get("questiontext", ""))
     
     answer = etree.SubElement(question, "answer")
     answer.set("fraction", "100")
@@ -590,7 +579,7 @@ def add_coderunner_question(xml_root, question_data: Dict[str, Any], category_pa
     
     category = etree.SubElement(question, "category")
     category_text = etree.SubElement(category, "text")
-    category_text.text = _escape_xml(category_path)
+    category_text.text = str(category_path)
 
 
 def add_gapfill_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
@@ -599,12 +588,12 @@ def add_gapfill_question(xml_root, question_data: Dict[str, Any], category_path:
     
     name = etree.SubElement(question, "name")
     name_text = etree.SubElement(name, "text")
-    name_text.text = _escape_xml(question_data.get("name", f"Gapfill {question_id}"))
+    name_text.text = str(question_data.get("name", f"Gapfill {question_id}"))
     
     questiontext = etree.SubElement(question, "questiontext")
     questiontext.set("format", "html")
     qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = _escape_xml(question_data.get("questiontext", ""))
+    qt_text.text = str(question_data.get("questiontext", ""))
     
     answer = etree.SubElement(question, "answer")
     answer.set("fraction", "100")
@@ -614,7 +603,7 @@ def add_gapfill_question(xml_root, question_data: Dict[str, Any], category_path:
     
     category = etree.SubElement(question, "category")
     category_text = etree.SubElement(category, "text")
-    category_text.text = _escape_xml(category_path)
+    category_text.text = str(category_path)
 
 
 def add_matching_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
@@ -623,12 +612,12 @@ def add_matching_question(xml_root, question_data: Dict[str, Any], category_path
     
     name = etree.SubElement(question, "name")
     name_text = etree.SubElement(name, "text")
-    name_text.text = _escape_xml(question_data.get("name", f"Matching {question_id}"))
+    name_text.text = str(question_data.get("name", f"Matching {question_id}"))
     
     questiontext = etree.SubElement(question, "questiontext")
     questiontext.set("format", "html")
     qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = _escape_xml(question_data.get("questiontext", ""))
+    qt_text.text = str(question_data.get("questiontext", ""))
     
     shuffleanswers = etree.SubElement(question, "shuffleanswers")
     shuffleanswers.text = "1"
@@ -638,15 +627,15 @@ def add_matching_question(xml_root, question_data: Dict[str, Any], category_path
         subquestion.set("format", "html")
         
         text = etree.SubElement(subquestion, "text")
-        text.text = _escape_xml(pair.get("left", ""))
+        text.text = str(pair.get("left", ""))
         
         answer = etree.SubElement(subquestion, "answer")
         answer_text = etree.SubElement(answer, "text")
-        answer_text.text = _escape_xml(pair.get("right", ""))
+        answer_text.text = str(pair.get("right", ""))
     
     category = etree.SubElement(question, "category")
     category_text = etree.SubElement(category, "text")
-    category_text.text = _escape_xml(category_path)
+    category_text.text = str(category_path)
 
 
 def add_numerical_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
@@ -655,12 +644,12 @@ def add_numerical_question(xml_root, question_data: Dict[str, Any], category_pat
     
     name = etree.SubElement(question, "name")
     name_text = etree.SubElement(name, "text")
-    name_text.text = _escape_xml(question_data.get("name", f"Numerisch {question_id}"))
+    name_text.text = str(question_data.get("name", f"Numerisch {question_id}"))
     
     questiontext = etree.SubElement(question, "questiontext")
     questiontext.set("format", "html")
     qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = _escape_xml(question_data.get("questiontext", ""))
+    qt_text.text = str(question_data.get("questiontext", ""))
     
     answer = etree.SubElement(question, "answer")
     answer.set("fraction", "100")
@@ -674,7 +663,7 @@ def add_numerical_question(xml_root, question_data: Dict[str, Any], category_pat
     
     category = etree.SubElement(question, "category")
     category_text = etree.SubElement(category, "text")
-    category_text.text = _escape_xml(category_path)
+    category_text.text = str(category_path)
 
 
 def save_moodle_xml(xml_root, output_file: str) -> None:
