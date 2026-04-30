@@ -8,6 +8,20 @@
     "startdate": "2026-05-01",
     "enddate": "2026-07-31"
   },
+  "sections": {
+    "section_6": {
+      "name": "Allgemeines",
+      "summary": "<p>Übersicht und Einstieg in den Kurs.</p>"
+    },
+    "section_7": {
+      "name": "Theorie: Brüche",
+      "summary": "<p>Grundlagen und Erklärungen zur Bruchrechnung.</p>"
+    },
+    "section_8": {
+      "name": "Übungen & Quiz",
+      "summary": "<p>Aufgaben und Selbsttest zum Kursthema.</p>"
+    }
+  },
   "activities": {
     "page_3": {
       "type": "page",
