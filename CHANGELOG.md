@@ -6,6 +6,16 @@
 
 ### New Features
 
+**CLI für `build_v1.py`** (`build_v1.py`)
+- Neue Argumente: `--input`, `--template`, `--out`, `--build-dir`.
+- Defaults unverändert, bestehende Aufrufe (`python build_v1.py`) funktionieren weiterhin.
+- Ermöglicht mehrere Kurse/Templates ohne Code-Änderung: `python build_v1.py --input physik.json --template backup_physik/ --out physik.mbz`
+
+**Retry-Logik in `generate_content.py`** (`generate_content.py`)
+- LLM-Aufruf wird bei ungültigem JSON bis zu 3 Mal wiederholt (`MAX_RETRIES = 3`).
+- Fehlerhafte Ausgabe wird als Feedback an das Modell zurückgegeben: "Dein letzter Versuch war ungültig: ..."
+- Erhöht Erfolgsrate bei schwächeren Modellen erheblich.
+
 **Section-Titel und Summary patchen** (`build_v1.py`, `generate_content.py`)
 - Neue Funktion `patch_sections()` schreibt `name` und `summary` in `sections/section_X/section.xml`.
 - Ersetzt den Moodle-Platzhalter `$@NULL@$` durch echten Inhalt — ohne Sections-Patch zeigt Moodle immer "Abschnitt 1", "Abschnitt 2" etc.
