@@ -515,18 +515,24 @@ def add_question_from_json(
 
 
 
+def _init_question(xml_root, moodle_type: str, data: dict, default_name: str, category_path: str):
+    """Builds question element with name and questiontext. Returns (question, category_fn).
+    Caller adds type-specific children, then calls category_fn() to close."""
+    q = etree.SubElement(xml_root, "question")
+    q.set("type", moodle_type)
+    etree.SubElement(etree.SubElement(q, "name"), "text").text = str(data.get("name", default_name))
+    qt = etree.SubElement(q, "questiontext")
+    qt.set("format", "html")
+    etree.SubElement(qt, "text").text = str(data.get("questiontext", ""))
+    return q
+
+
+def _append_category(question, category_path: str) -> None:
+    etree.SubElement(etree.SubElement(question, "category"), "text").text = str(category_path)
+
+
 def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    question = etree.SubElement(xml_root, "question")
-    question.set("type", "multichoice")
-    
-    name = etree.SubElement(question, "name")
-    name_text = etree.SubElement(name, "text")
-    name_text.text = str(question_data.get("name", f"Frage {question_id}"))
-    
-    questiontext = etree.SubElement(question, "questiontext")
-    questiontext.set("format", "html")
-    qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = str(question_data.get("questiontext", ""))
+    question = _init_question(xml_root, "multichoice", question_data, f"Frage {question_id}", category_path)
     
     shuffleanswers = etree.SubElement(question, "shuffleanswers")
     shuffleanswers.text = "1"
@@ -548,91 +554,41 @@ def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str,
         
         feedback = etree.SubElement(answer, "feedback")
         feedback.set("format", "html")
-        feedback_text = etree.SubElement(feedback, "text")
-        feedback_text.text = ""
-    
-    category = etree.SubElement(question, "category")
-    category_text = etree.SubElement(category, "text")
-    category_text.text = str(category_path)
+        etree.SubElement(feedback, "text").text = ""
+
+    _append_category(question, category_path)
 
 
 def add_shortanswer_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    question = etree.SubElement(xml_root, "question")
-    question.set("type", "shortanswer")
-
-    name = etree.SubElement(question, "name")
-    etree.SubElement(name, "text").text = str(question_data.get("name", f"Frage {question_id}"))
-
-    qt = etree.SubElement(question, "questiontext")
-    qt.set("format", "html")
-    etree.SubElement(qt, "text").text = str(question_data.get("questiontext", ""))
-
+    question = _init_question(xml_root, "shortanswer", question_data, f"Frage {question_id}", category_path)
     answer = etree.SubElement(question, "answer")
     answer.set("fraction", "100")
     answer.set("format", "html")
     etree.SubElement(answer, "text").text = "Siehe Fragebeschreibung"
-
-    etree.SubElement(etree.SubElement(question, "category"), "text").text = str(category_path)
+    _append_category(question, category_path)
 
 
 def add_matching_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    question = etree.SubElement(xml_root, "question")
-    question.set("type", "matching")
-    
-    name = etree.SubElement(question, "name")
-    name_text = etree.SubElement(name, "text")
-    name_text.text = str(question_data.get("name", f"Matching {question_id}"))
-    
-    questiontext = etree.SubElement(question, "questiontext")
-    questiontext.set("format", "html")
-    qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = str(question_data.get("questiontext", ""))
-    
-    shuffleanswers = etree.SubElement(question, "shuffleanswers")
-    shuffleanswers.text = "1"
-    
-    for idx, pair in enumerate(question_data.get("pairs", []), 1):
-        subquestion = etree.SubElement(question, "subquestion")
-        subquestion.set("format", "html")
-        
-        text = etree.SubElement(subquestion, "text")
-        text.text = str(pair.get("left", ""))
-        
-        answer = etree.SubElement(subquestion, "answer")
-        answer_text = etree.SubElement(answer, "text")
-        answer_text.text = str(pair.get("right", ""))
-    
-    category = etree.SubElement(question, "category")
-    category_text = etree.SubElement(category, "text")
-    category_text.text = str(category_path)
+    question = _init_question(xml_root, "matching", question_data, f"Matching {question_id}", category_path)
+    etree.SubElement(question, "shuffleanswers").text = "1"
+
+    for pair in question_data.get("pairs", []):
+        sub = etree.SubElement(question, "subquestion")
+        sub.set("format", "html")
+        etree.SubElement(sub, "text").text = str(pair.get("left", ""))
+        etree.SubElement(etree.SubElement(sub, "answer"), "text").text = str(pair.get("right", ""))
+
+    _append_category(question, category_path)
 
 
 def add_numerical_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    question = etree.SubElement(xml_root, "question")
-    question.set("type", "numerical")
-    
-    name = etree.SubElement(question, "name")
-    name_text = etree.SubElement(name, "text")
-    name_text.text = str(question_data.get("name", f"Numerisch {question_id}"))
-    
-    questiontext = etree.SubElement(question, "questiontext")
-    questiontext.set("format", "html")
-    qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = str(question_data.get("questiontext", ""))
-    
+    question = _init_question(xml_root, "numerical", question_data, f"Numerisch {question_id}", category_path)
     answer = etree.SubElement(question, "answer")
     answer.set("fraction", "100")
     answer.set("format", "html")
-    
-    answer_text = etree.SubElement(answer, "text")
-    answer_text.text = str(question_data.get("correct_answer", "0"))
-    
-    tolerance = etree.SubElement(answer, "tolerance")
-    tolerance.text = str(question_data.get("tolerance", "0.01"))
-    
-    category = etree.SubElement(question, "category")
-    category_text = etree.SubElement(category, "text")
-    category_text.text = str(category_path)
+    etree.SubElement(answer, "text").text = str(question_data.get("correct_answer", "0"))
+    etree.SubElement(answer, "tolerance").text = str(question_data.get("tolerance", "0.01"))
+    _append_category(question, category_path)
 
 
 def save_moodle_xml(xml_root, output_file: str) -> None:
