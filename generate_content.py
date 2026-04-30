@@ -63,6 +63,20 @@ Antworte NUR mit diesem JSON-Objekt (kein Markdown, keine Erklärungen davor ode
     "lang": "de",
     "visible": true
   }},
+  "sections": {{
+    "section_6": {{
+      "name": "Allgemeines",
+      "summary": "<p>Einstieg und Überblick über den Kurs.</p>"
+    }},
+    "section_7": {{
+      "name": "Theorie: [Thema]",
+      "summary": "<p>Theoretische Grundlagen zum Thema.</p>"
+    }},
+    "section_8": {{
+      "name": "Übungen & Quiz",
+      "summary": "<p>Praktische Aufgaben und Wissenstest.</p>"
+    }}
+  }},
   "activities": {{
     "page_3": {{
       "type": "page",
