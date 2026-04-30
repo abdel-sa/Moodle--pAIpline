@@ -50,7 +50,7 @@ manager = ConnectionManager()
 # Global state to keep track of the running process for interacting with stdin or stopping it
 running_process: Optional[subprocess.Popen] = None
 
-async def stream_subprocess(cmd: List[str], cwd: str = "."):
+async def stream_subprocess(cmd: List[str], cwd: str = ".", extra_env: dict = {}):
     """
     Runs cmd as a subprocess and streams stdout line-by-line to all WebSocket clients.
     Uses subprocess.Popen + run_in_executor to avoid asyncio event loop issues on Windows
@@ -63,6 +63,7 @@ async def stream_subprocess(cmd: List[str], cwd: str = "."):
     try:
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
+        env.update(extra_env)
 
         running_process = subprocess.Popen(
             cmd,
@@ -158,24 +159,29 @@ class WorkflowBRequest(BaseModel):
     topic: str
     provider: str = "ollama"
     model: str = "llama3.2"
+    groq_api_key: str = ""
 
 @app.post("/api/workflow/topic-to-course")
 async def run_workflow_b(req: WorkflowBRequest, background_tasks: BackgroundTasks):
     global running_process
     if running_process is not None:
         return JSONResponse(status_code=400, content={"message": "A process is already running"})
-    
+
     input_json = UPLOAD_DIR / f"input_{req.topic.replace(' ', '_')}.json"
     mbz_out = OUTPUT_DIR / f"course_{req.topic.replace(' ', '_')}.mbz"
-    
+
+    extra_env = {}
+    if req.groq_api_key:
+        extra_env["GROQ_API_KEY"] = req.groq_api_key
+
     async def task():
         # Step 1: Generate Content
         cmd_gen = [sys.executable, "generate_content.py", req.topic,
                    "--provider", req.provider,
                    "--model", req.model,
                    "--out", str(input_json)]
-        await stream_subprocess(cmd_gen)
-        
+        await stream_subprocess(cmd_gen, extra_env=extra_env)
+
         # Step 2: Build MBZ
         if input_json.exists():
             cmd_build = [sys.executable, "build_v1.py",

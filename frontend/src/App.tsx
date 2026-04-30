@@ -21,6 +21,12 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [provider, setProvider] = useState<'ollama' | 'groq'>('ollama');
   const [model, setModel] = useState('llama3.2');
+  const [groqApiKey, setGroqApiKey] = useState('');
+
+  const handleProviderChange = (p: 'ollama' | 'groq') => {
+    setProvider(p);
+    setModel(p === 'groq' ? 'llama-3.3-70b-versatile' : 'llama3.2');
+  };
 
   // Execution State
   const [isRunning, setIsRunning] = useState(false);
@@ -128,7 +134,8 @@ function App() {
       await axios.post(`${API_BASE}/workflow/topic-to-course`, {
         topic,
         provider,
-        model
+        model,
+        groq_api_key: groqApiKey,
       });
 
       // Format filename exactly as backend does
@@ -183,9 +190,9 @@ function App() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Provider</label>
-                  <select 
+                  <select
                     value={provider}
-                    onChange={(e) => setProvider(e.target.value as 'ollama' | 'groq')}
+                    onChange={(e) => handleProviderChange(e.target.value as 'ollama' | 'groq')}
                     className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]"
                   >
                     <option value="ollama">Ollama (Local)</option>
@@ -194,14 +201,29 @@ function App() {
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Model</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
-                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]" 
-                    placeholder="e.g. llama3.2 or mistral" 
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]"
+                    placeholder="e.g. llama3.2 or mistral"
                   />
                 </div>
+                {provider === 'groq' && (
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">
+                      Groq API Key
+                      <a href="https://console.groq.com" target="_blank" rel="noreferrer" className="ml-2 text-[var(--color-primary)] hover:underline">kostenlos holen →</a>
+                    </label>
+                    <input
+                      type="password"
+                      value={groqApiKey}
+                      onChange={(e) => setGroqApiKey(e.target.value)}
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)]"
+                      placeholder="gsk_..."
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
