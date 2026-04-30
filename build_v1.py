@@ -309,6 +309,41 @@ def patch_course_metadata(output_dir, metadata):
     write_xml_file(course_xml, tree)
 
 
+def patch_sections(output_dir, sections):
+    """
+    Patcht sections/section_X/section.xml mit name und summary.
+    sections: {"section_6": {"name": "Einführung", "summary": "<p>...</p>"}, ...}
+    """
+    if not sections:
+        log("Keine sections in input.json definiert", "WARN")
+        return
+
+    for section_key, section_data in sections.items():
+        section_xml = os.path.join(output_dir, "sections", section_key, "section.xml")
+
+        if not os.path.exists(section_xml):
+            log(f"Section nicht gefunden: {section_key} – überspringe", "WARN")
+            continue
+
+        log(f"Patche Section: {section_key}")
+        tree = parse_xml_file(section_xml)
+        root = tree.getroot()
+
+        if "name" in section_data:
+            elem = root.find("name")
+            if elem is not None:
+                elem.text = section_data["name"]
+                log(f"  → <name> = {section_data['name']}", "OK")
+
+        if "summary" in section_data:
+            elem = root.find("summary")
+            if elem is not None:
+                elem.text = section_data["summary"]
+                log(f"  → <summary> updated ({len(section_data['summary'])} chars)", "OK")
+
+        write_xml_file(section_xml, tree)
+
+
 def patch_activities_v1(output_dir, input_data):
     """
     V1: Unterstützt mehrere Activities und flexible Keys.
@@ -407,12 +442,20 @@ def main():
         else:
             log("Keine course_metadata in input.json, überspringe", "WARN")
 
-        # 5. Activities patchen
-        print("\n[5] Activities patchen")
+        # 5. Sections patchen
+        print("\n[5] Sections patchen")
+        sections = input_data.get("sections", {})
+        if sections:
+            patch_sections(OUTPUT_DIR, sections)
+        else:
+            log("Keine sections in input.json, überspringe", "WARN")
+
+        # 6. Activities patchen
+        print("\n[6] Activities patchen")
         patch_activities_v1(OUTPUT_DIR, input_data)
         
-        # 6. MBZ erstellen
-        print("\n[6] .mbz-Datei erstellen")
+        # 7. MBZ erstellen
+        print("\n[7] .mbz-Datei erstellen")
         create_mbz(OUTPUT_DIR, OUTPUT_MBZ)
         
         # Erfolg
