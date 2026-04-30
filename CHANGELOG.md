@@ -2,6 +2,18 @@
 
 ---
 
+## [Unreleased] – 2026-04-30
+
+### New Features
+
+**Section-Titel und Summary patchen** (`build_v1.py`, `generate_content.py`)
+- Neue Funktion `patch_sections()` schreibt `name` und `summary` in `sections/section_X/section.xml`.
+- Ersetzt den Moodle-Platzhalter `$@NULL@$` durch echten Inhalt — ohne Sections-Patch zeigt Moodle immer "Abschnitt 1", "Abschnitt 2" etc.
+- `input.json` Schema erweitert um `"sections": { "section_6": { "name": "...", "summary": "..." }, ... }`.
+- LLM-Prompt in `generate_content.py` generiert jetzt ebenfalls Section-Namen und Beschreibungen.
+
+---
+
 ## [Unreleased] – 2026-04-29
 
 ### Bug Fixes
