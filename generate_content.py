@@ -153,11 +153,36 @@ def _http_post(url: str, payload: dict, headers: dict) -> dict:
 
 
 def call_ollama(prompt: str, model: str) -> str:
-    """Ruft Ollama lokal auf und gibt den Rohtext zurück."""
+    """
+    Ruft Ollama lokal auf und gibt den Rohtext zurück.
+    Verwendet stream=True damit der Socket bei langen Generierungen nicht
+    durch einen Read-Timeout abgebrochen wird.
+    """
     print(f"  → Ollama ({model}) wird aufgerufen...")
-    payload = {"model": model, "prompt": prompt, "stream": False}
-    resp = _http_post(OLLAMA_URL, payload, {"Content-Type": "application/json"})
-    return resp.get("response", "")
+    payload = {"model": model, "prompt": prompt, "stream": True}
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        OLLAMA_URL, data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            chunks = []
+            for raw_line in resp:
+                line = raw_line.decode("utf-8").strip()
+                if not line:
+                    continue
+                chunk = json.loads(line)
+                chunks.append(chunk.get("response", ""))
+                if chunk.get("done"):
+                    break
+            return "".join(chunks)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"HTTP {e.code} von {OLLAMA_URL}:\n{body}") from e
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"Verbindung zu Ollama fehlgeschlagen: {e.reason}") from e
 
 
 def call_groq(prompt: str, model: str, api_key: str) -> str:
