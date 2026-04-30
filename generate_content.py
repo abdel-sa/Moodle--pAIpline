@@ -207,6 +207,7 @@ def call_groq(prompt: str, model: str, api_key: str) -> str:
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
+        "User-Agent": "moodle-paipline/1.0",
     }
     resp = _http_post(GROQ_URL, payload, headers)
     return resp["choices"][0]["message"]["content"]

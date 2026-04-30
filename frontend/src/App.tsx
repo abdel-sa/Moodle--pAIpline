@@ -53,9 +53,11 @@ function App() {
       const text = event.data as string;
       setLogs(prev => [...prev, text]);
       
-      if (text.includes('[Process finished') || text.includes('[Process terminated')) {
+      if (text.includes('[Process finished with exit code 0]')) {
         setIsRunning(false);
-        // Try to construct download URL if we know what was running
+      } else if (text.includes('[Process finished') || text.includes('[Process terminated')) {
+        setIsRunning(false);
+        setDownloadUrl(null);
       }
 
       // Detect interactive prompt from pipeline.py
