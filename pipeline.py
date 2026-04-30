@@ -300,19 +300,10 @@ def generate_questions_for_topic(
     Parses the returned JSON and falls back to a default set of questions if errors occur.
     """
     
-    if qtype == "oumultiresponse":
-        prompt = _prompt_oumultiresponse(topic, num_questions)
-    elif qtype == "coderunner":
-        prompt = _prompt_coderunner(topic, num_questions)
-    elif qtype == "gapfill":
-        prompt = _prompt_gapfill(topic, num_questions)
-    elif qtype == "matching":
-        prompt = _prompt_matching(topic, num_questions)
-    elif qtype == "numerical":
-        prompt = _prompt_numerical(topic, num_questions)
-    else:
+    if qtype not in _PROMPT_EXAMPLES:
         print(f"  ✗ Unbekannter Fragetyp: {qtype}")
         return []
+    prompt = _build_prompt(qtype, topic, num_questions)
     
     try:
         response = call_llm(prompt, model=model)
@@ -420,77 +411,56 @@ def _generate_fallback_questions(topic: str, qtype: str, num_questions: int) -> 
     return questions
 
 
-def _prompt_oumultiresponse(topic: str, num_questions: int) -> str:
-    return f"""Generiere genau {num_questions} Multiple-Choice-Fragen zum Thema: {topic}
+_PROMPT_EXAMPLES = {
+    "oumultiresponse": """\
+  {{
+    "name": "{topic}: Eigenschaft 1",
+    "questiontext": "Welche Aussagen zu {topic} sind korrekt?",
+    "answers": [
+      {{"text": "Aussage A ist richtig.", "correct": true}},
+      {{"text": "Aussage B ist falsch.", "correct": false}}
+    ]
+  }}""",
+    "coderunner": """\
+  {{
+    "name": "CodeRunner: {topic} - Aufgabe 1",
+    "questiontext": "Schreibe eine Funktion..."
+  }}""",
+    "gapfill": """\
+  {{
+    "name": "Gapfill: {topic} - Text 1",
+    "questiontext": "Ein Lückentext..."
+  }}""",
+    "matching": """\
+  {{
+    "name": "Matching: {topic} - Aufgabe 1",
+    "questiontext": "Ordne zu:",
+    "pairs": [{{"left": "A", "right": "Definition A"}}]
+  }}""",
+    "numerical": """\
+  {{
+    "name": "Numerisch: {topic} - Frage 1",
+    "correct_answer": 42,
+    "tolerance": 0.01
+  }}""",
+}
 
-{{
-  "questions": [
-    {{
-      "name": "{topic}: Eigenschaft 1",
-      "questiontext": "Welche der folgenden Aussagen zu {topic} sind korrekt?",
-      "answers": [
-        {{"text": "Aussage A ist richtig.", "correct": true}},
-        {{"text": "Aussage B ist falsch.", "correct": false}}
-      ]
-    }}
-  ]
-}}"""
-
-
-def _prompt_coderunner(topic: str, num_questions: int) -> str:
-    return f"""Generiere {num_questions} Programmieraufgaben zum Thema: {topic}
-
-{{
-  "questions": [
-    {{
-      "name": "CodeRunner: {topic} - Aufgabe 1",
-      "questiontext": "Schreibe eine Funktion..."
-    }}
-  ]
-}}"""
-
-
-def _prompt_gapfill(topic: str, num_questions: int) -> str:
-    return f"""Generiere {num_questions} Lückentexte zum Thema: {topic}
-
-{{
-  "questions": [
-    {{
-      "name": "Gapfill: {topic} - Text 1",
-      "questiontext": "Ein Lückentext..."
-    }}
-  ]
-}}"""
-
-
-def _prompt_matching(topic: str, num_questions: int) -> str:
-    return f"""Generiere {num_questions} Zuordnungsaufgaben zum Thema: {topic}
-
-{{
-  "questions": [
-    {{
-      "name": "Matching: {topic} - Aufgabe 1",
-      "questiontext": "Ordne zu:",
-      "pairs": [
-        {{"left": "A", "right": "Definition A"}}
-      ]
-    }}
-  ]
-}}"""
+_QTYPE_LABELS = {
+    "oumultiresponse": "Multiple-Choice-Fragen",
+    "coderunner": "Programmieraufgaben",
+    "gapfill": "Lückentexte",
+    "matching": "Zuordnungsaufgaben",
+    "numerical": "numerische Fragen",
+}
 
 
-def _prompt_numerical(topic: str, num_questions: int) -> str:
-    return f"""Generiere {num_questions} numerische Fragen zum Thema: {topic}
-
-{{
-  "questions": [
-    {{
-      "name": "Numerisch: {topic} - Frage 1",
-      "correct_answer": 42,
-      "tolerance": 0.01
-    }}
-  ]
-}}"""
+def _build_prompt(qtype: str, topic: str, num_questions: int) -> str:
+    label = _QTYPE_LABELS.get(qtype, "Fragen")
+    example = _PROMPT_EXAMPLES.get(qtype, "").format(topic=topic)
+    return (
+        f"Generiere genau {num_questions} {label} zum Thema: {topic}\n\n"
+        f'{{"questions": [\n{example}\n]}}'
+    )
 
 
 def init_moodle_xml():
