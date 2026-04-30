@@ -2,6 +2,7 @@ import os
 import sys
 import asyncio
 import shutil
+import subprocess
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,42 +48,45 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # Global state to keep track of the running process for interacting with stdin or stopping it
-running_process: Optional[asyncio.subprocess.Process] = None
+running_process: Optional[subprocess.Popen] = None
 
 async def stream_subprocess(cmd: List[str], cwd: str = "."):
+    """
+    Runs cmd as a subprocess and streams stdout line-by-line to all WebSocket clients.
+    Uses subprocess.Popen + run_in_executor to avoid asyncio event loop issues on Windows
+    (SelectorEventLoop does not support create_subprocess_exec).
+    """
     global running_process
-    
+
     await manager.broadcast(f"> Running command: {' '.join(cmd)}\n")
-    
+
     try:
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
-        
-        running_process = await asyncio.create_subprocess_exec(
-            *cmd,
+
+        running_process = subprocess.Popen(
+            cmd,
             cwd=cwd,
             env=env,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
-            stdin=asyncio.subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.PIPE,
         )
-        
+
+        loop = asyncio.get_event_loop()
+
         while True:
-            # Read line by line
-            line = await running_process.stdout.readline()
+            line = await loop.run_in_executor(None, running_process.stdout.readline)
             if not line:
                 break
-            
-            decoded_line = line.decode('utf-8', errors='replace')
-            await manager.broadcast(decoded_line)
-            
-        await running_process.wait()
+            await manager.broadcast(line.decode("utf-8", errors="replace"))
+
+        running_process.wait()
         await manager.broadcast(f"\n[Process finished with exit code {running_process.returncode}]\n")
-        
+
     except Exception as e:
         import traceback
-        err_msg = traceback.format_exc()
-        await manager.broadcast(f"\n[Error running process: {repr(e)}\n{err_msg}]\n")
+        await manager.broadcast(f"\n[Error running process: {repr(e)}\n{traceback.format_exc()}]\n")
     finally:
         running_process = None
 
