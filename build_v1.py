@@ -11,17 +11,18 @@ import shutil
 import os
 import zipfile
 import sys
+import argparse
 from datetime import datetime, timezone
 from lxml import etree
 
 # ============================================================================
-# KONFIGURATION
+# KONFIGURATION (Defaults – überschreibbar per CLI)
 # ============================================================================
 
-TEMPLATE_DIR = "template_backup"
-OUTPUT_DIR = "out_build"
-OUTPUT_MBZ = "generated_course.mbz"
-INPUT_FILE = "input.json"
+DEFAULT_TEMPLATE_DIR = "template_backup"
+DEFAULT_OUTPUT_DIR = "out_build"
+DEFAULT_OUTPUT_MBZ = "generated_course.mbz"
+DEFAULT_INPUT_FILE = "input.json"
 
 def log(msg, level="INFO"):
     prefixes = {"OK": "✓ ", "WARN": "⚠ ", "ERROR": "✗ "}
@@ -34,24 +35,20 @@ def log(msg, level="INFO"):
 class ValidationError(Exception):
     pass
 
-def validate_template_structure():
+def validate_template_structure(template_dir):
     """Prüft, ob Template-Dir existiert und die Basis-Struktur stimmt"""
-    log(f"Validiere Template in: {TEMPLATE_DIR}")
-    
-    if not os.path.isdir(TEMPLATE_DIR):
-        raise ValidationError(f"Template-Dir nicht gefunden: {TEMPLATE_DIR}")
-    
-    required_files = [
-        "moodle_backup.xml",
-        "activities",
-        "sections"
-    ]
-    
+    log(f"Validiere Template in: {template_dir}")
+
+    if not os.path.isdir(template_dir):
+        raise ValidationError(f"Template-Dir nicht gefunden: {template_dir}")
+
+    required_files = ["moodle_backup.xml", "activities", "sections"]
+
     for item in required_files:
-        path = os.path.join(TEMPLATE_DIR, item)
+        path = os.path.join(template_dir, item)
         if not os.path.exists(path):
             raise ValidationError(f"Template-Datei fehlt: {item}")
-    
+
     log("Template-Struktur OK", "OK")
 
 def validate_activity_in_template(output_dir, activity_key, activity_type):
@@ -416,29 +413,53 @@ def create_mbz(output_dir, mbz_filename):
     file_size = os.path.getsize(mbz_filename)
     log(f"{mbz_filename} erstellt ({file_size} bytes)", "OK")
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Moodle pAIpline – erzeugt .mbz aus Template + input.json",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Beispiele:
+  python build_v1.py
+  python build_v1.py --input mein_kurs.json
+  python build_v1.py --input kurs.json --template backup_physik/ --out physik.mbz
+        """,
+    )
+    parser.add_argument("--input", default=DEFAULT_INPUT_FILE,
+                        help=f"Input-JSON (Standard: {DEFAULT_INPUT_FILE})")
+    parser.add_argument("--template", default=DEFAULT_TEMPLATE_DIR,
+                        help=f"Template-Verzeichnis (Standard: {DEFAULT_TEMPLATE_DIR})")
+    parser.add_argument("--out", default=DEFAULT_OUTPUT_MBZ,
+                        help=f"Ausgabe-Datei (Standard: {DEFAULT_OUTPUT_MBZ})")
+    parser.add_argument("--build-dir", default=DEFAULT_OUTPUT_DIR,
+                        help=f"Temporäres Build-Verzeichnis (Standard: {DEFAULT_OUTPUT_DIR})")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+
     print("\n" + "=" * 70)
     print("Moodle pAIpline v1 – Multi-Question Edition")
     print("=" * 70 + "\n")
-    
+
     try:
         # 1. Validierung
         print("[1] Validierung")
-        validate_template_structure()
-        
+        validate_template_structure(args.template)
+
         # 2. Input laden
         print("\n[2] Input laden")
-        input_data = load_input(INPUT_FILE)
-        
+        input_data = load_input(args.input)
+
         # 3. Template kopieren
         print("\n[3] Template kopieren")
-        copy_template(TEMPLATE_DIR, OUTPUT_DIR)
-        
+        copy_template(args.template, args.build_dir)
+
         # 4. Kurs-Metadata patchen
         print("\n[4] Kurs-Metadata patchen")
         metadata = input_data.get("course_metadata", {})
         if metadata:
-            patch_course_metadata(OUTPUT_DIR, metadata)
+            patch_course_metadata(args.build_dir, metadata)
         else:
             log("Keine course_metadata in input.json, überspringe", "WARN")
 
@@ -446,28 +467,28 @@ def main():
         print("\n[5] Sections patchen")
         sections = input_data.get("sections", {})
         if sections:
-            patch_sections(OUTPUT_DIR, sections)
+            patch_sections(args.build_dir, sections)
         else:
             log("Keine sections in input.json, überspringe", "WARN")
 
         # 6. Activities patchen
         print("\n[6] Activities patchen")
-        patch_activities_v1(OUTPUT_DIR, input_data)
-        
+        patch_activities_v1(args.build_dir, input_data)
+
         # 7. MBZ erstellen
         print("\n[7] .mbz-Datei erstellen")
-        create_mbz(OUTPUT_DIR, OUTPUT_MBZ)
-        
+        create_mbz(args.build_dir, args.out)
+
         # Erfolg
         print("\n" + "=" * 70)
-        print("✅ ERFOLG! Kursdatei erzeugt: " + OUTPUT_MBZ)
+        print("✅ ERFOLG! Kursdatei erzeugt: " + args.out)
         print("=" * 70)
         print("\nNächste Schritte:")
         print("  1. In Moodle: Kurs → Course administration → Restore")
-        print("  2. " + OUTPUT_MBZ + " auswählen")
+        print("  2. " + args.out + " auswählen")
         print("  3. Durchklicken und Kursinhalte werden wiederhergestellt")
         print()
-        
+
     except ValidationError as e:
         log(f"Validierungsfehler: {e}", "ERROR")
         sys.exit(1)
