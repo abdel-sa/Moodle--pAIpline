@@ -506,10 +506,8 @@ def add_question_from_json(
 ) -> None:
     if qtype == "oumultiresponse":
         add_mc_question(xml_root, question_data, category_path, question_id)
-    elif qtype == "coderunner":
-        add_coderunner_question(xml_root, question_data, category_path, question_id)
-    elif qtype == "gapfill":
-        add_gapfill_question(xml_root, question_data, category_path, question_id)
+    elif qtype in ("coderunner", "gapfill"):
+        add_shortanswer_question(xml_root, question_data, category_path, question_id)
     elif qtype == "matching":
         add_matching_question(xml_root, question_data, category_path, question_id)
     elif qtype == "numerical":
@@ -558,52 +556,23 @@ def add_mc_question(xml_root, question_data: Dict[str, Any], category_path: str,
     category_text.text = str(category_path)
 
 
-def add_coderunner_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
+def add_shortanswer_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
     question = etree.SubElement(xml_root, "question")
     question.set("type", "shortanswer")
-    
+
     name = etree.SubElement(question, "name")
-    name_text = etree.SubElement(name, "text")
-    name_text.text = str(question_data.get("name", f"CodeRunner {question_id}"))
-    
-    questiontext = etree.SubElement(question, "questiontext")
-    questiontext.set("format", "html")
-    qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = str(question_data.get("questiontext", ""))
-    
+    etree.SubElement(name, "text").text = str(question_data.get("name", f"Frage {question_id}"))
+
+    qt = etree.SubElement(question, "questiontext")
+    qt.set("format", "html")
+    etree.SubElement(qt, "text").text = str(question_data.get("questiontext", ""))
+
     answer = etree.SubElement(question, "answer")
     answer.set("fraction", "100")
     answer.set("format", "html")
-    answer_text = etree.SubElement(answer, "text")
-    answer_text.text = "Siehe Fragebeschreibung"
-    
-    category = etree.SubElement(question, "category")
-    category_text = etree.SubElement(category, "text")
-    category_text.text = str(category_path)
+    etree.SubElement(answer, "text").text = "Siehe Fragebeschreibung"
 
-
-def add_gapfill_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
-    question = etree.SubElement(xml_root, "question")
-    question.set("type", "shortanswer")
-    
-    name = etree.SubElement(question, "name")
-    name_text = etree.SubElement(name, "text")
-    name_text.text = str(question_data.get("name", f"Gapfill {question_id}"))
-    
-    questiontext = etree.SubElement(question, "questiontext")
-    questiontext.set("format", "html")
-    qt_text = etree.SubElement(questiontext, "text")
-    qt_text.text = str(question_data.get("questiontext", ""))
-    
-    answer = etree.SubElement(question, "answer")
-    answer.set("fraction", "100")
-    answer.set("format", "html")
-    answer_text = etree.SubElement(answer, "text")
-    answer_text.text = "Siehe Fragebeschreibung"
-    
-    category = etree.SubElement(question, "category")
-    category_text = etree.SubElement(category, "text")
-    category_text.text = str(category_path)
+    etree.SubElement(etree.SubElement(question, "category"), "text").text = str(category_path)
 
 
 def add_matching_question(xml_root, question_data: Dict[str, Any], category_path: str, question_id: int) -> None:
