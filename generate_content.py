@@ -169,14 +169,21 @@ def call_ollama(prompt: str, model: str) -> str:
     try:
         with urllib.request.urlopen(req, timeout=120) as resp:
             chunks = []
+            token_count = 0
+            print("  → Generiere", end="", flush=True)
             for raw_line in resp:
                 line = raw_line.decode("utf-8").strip()
                 if not line:
                     continue
                 chunk = json.loads(line)
-                chunks.append(chunk.get("response", ""))
+                token = chunk.get("response", "")
+                chunks.append(token)
+                token_count += 1
+                if token_count % 50 == 0:
+                    print(".", end="", flush=True)
                 if chunk.get("done"):
                     break
+            print(f" ({token_count} Tokens)")
             return "".join(chunks)
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
