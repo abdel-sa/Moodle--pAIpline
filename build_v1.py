@@ -6,6 +6,7 @@ Moodle pAIpline v1: Multi-Question, Multi-Activity, mit Validierung & Logging
 - Strukturiertes Logging der Patch-Operationen
 """
 
+import copy
 import json
 import shutil
 import os
@@ -167,16 +168,28 @@ def patch_quiz_questions(questions_xml_path, questions_data):
         answers = q_data.get("answers", [])
         
         log(f"  Frage: qbe_id={qbe_id}, question_id={question_id}")
-        
-        # Finde <question_bank_entry id=qbe_id>
+
+        # Finde <question_bank_entry id=qbe_id> — falls nicht vorhanden, ersten klonen
         qbe = root.find(f".//question_bank_entry[@id='{qbe_id}']")
         if qbe is None:
-            raise ValidationError(f"question_bank_entry mit id={qbe_id} nicht gefunden")
-        
-        # Finde <question id=question_id> darin
+            first_qbe = root.find(".//question_bank_entry")
+            if first_qbe is None:
+                raise ValidationError("Keine question_bank_entry im Template gefunden")
+            qbe = copy.deepcopy(first_qbe)
+            qbe.set("id", qbe_id)
+            first_qbe.getparent().append(qbe)
+            log(f"    → question_bank_entry id={qbe_id} aus Template geklont", "OK")
+
+        # Finde <question id=question_id> — falls nicht vorhanden, erste klonen
         q = qbe.find(f".//question[@id='{question_id}']")
         if q is None:
-            raise ValidationError(f"question mit id={question_id} in qbe={qbe_id} nicht gefunden")
+            first_q = qbe.find(".//question")
+            if first_q is None:
+                raise ValidationError(f"Keine question in qbe={qbe_id} gefunden")
+            q = copy.deepcopy(first_q)
+            q.set("id", question_id)
+            first_q.getparent().append(q)
+            log(f"    → question id={question_id} geklont", "OK")
         
         # Update <name>
         name_elem = q.find("name")

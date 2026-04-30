@@ -105,7 +105,7 @@ Antworte NUR mit diesem JSON-Objekt (kein Markdown, keine Erklärungen davor ode
         }},
         {{
           "qbe_id": 2,
-          "question_id": 2,
+          "question_id": 1,
           "name": "Frage 2",
           "questiontext_html": "<p>Zweite Frage zum Thema?</p>",
           "answers": [
@@ -116,7 +116,7 @@ Antworte NUR mit diesem JSON-Objekt (kein Markdown, keine Erklärungen davor ode
         }},
         {{
           "qbe_id": 3,
-          "question_id": 3,
+          "question_id": 1,
           "name": "Frage 3",
           "questiontext_html": "<p>Dritte Frage zum Thema?</p>",
           "answers": [
