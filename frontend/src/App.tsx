@@ -1,5 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { Layers, FileText, Settings, Play, Square, Download, UploadCloud, CheckCircle, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Layers, FileText, Settings, Play, Square, Download, UploadCloud, CheckCircle, X, Terminal as TerminalIcon } from 'lucide-react';
+import axios from 'axios';
+
+const API_BASE = 'http://localhost:8000/api';
+const WS_URL = 'ws://localhost:8000/ws/logs';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'doc' | 'topic'>('doc');
@@ -18,9 +22,47 @@ function App() {
   const [provider, setProvider] = useState<'ollama' | 'groq'>('ollama');
   const [model, setModel] = useState('llama3.2');
 
+  // Execution State
+  const [isRunning, setIsRunning] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
+  // Interactive Prompt State
+  const [showPrompt, setShowPrompt] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Drag and Drop handlers
+  // Auto-scroll logs
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logs]);
+
+  // Connect WebSocket
+  useEffect(() => {
+    wsRef.current = new WebSocket(WS_URL);
+    
+    wsRef.current.onmessage = (event) => {
+      const text = event.data as string;
+      setLogs(prev => [...prev, text]);
+      
+      if (text.includes('[Process finished') || text.includes('[Process terminated')) {
+        setIsRunning(false);
+        // Try to construct download URL if we know what was running
+      }
+
+      // Detect interactive prompt from pipeline.py
+      if (text.includes('Akzeptieren [a], neu generieren [r], überspringen [s]?')) {
+        setShowPrompt(true);
+      }
+    };
+
+    return () => {
+      wsRef.current?.close();
+    };
+  }, []);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -42,6 +84,75 @@ function App() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const startWorkflowA = async () => {
+    if (!selectedFile) return;
+    setIsRunning(true);
+    setLogs(['> Starting Workflow A (Document to Questions)...']);
+    setDownloadUrl(null);
+    setShowPrompt(false);
+
+    try {
+      // 1. Upload File
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      const uploadRes = await axios.post(`${API_BASE}/upload`, formData);
+      const filename = uploadRes.data.filename;
+
+      // 2. Trigger Workflow
+      await axios.post(`${API_BASE}/workflow/doc-to-questions`, {
+        filename,
+        title: docTitle,
+        category: docCategory,
+        model
+      });
+
+      // We assume it generates an XML file
+      setDownloadUrl(`${API_BASE}/download/questions_${filename}.xml`);
+
+    } catch (error: any) {
+      setLogs(prev => [...prev, `\n[Error: ${error.message}]\n`]);
+      setIsRunning(false);
+    }
+  };
+
+  const startWorkflowB = async () => {
+    if (!topic) return;
+    setIsRunning(true);
+    setLogs(['> Starting Workflow B (Topic to Course)...']);
+    setDownloadUrl(null);
+
+    try {
+      await axios.post(`${API_BASE}/workflow/topic-to-course`, {
+        topic,
+        provider,
+        model
+      });
+
+      // Format filename exactly as backend does
+      const safeTopic = topic.replace(/ /g, '_');
+      setDownloadUrl(`${API_BASE}/download/course_${safeTopic}.mbz`);
+
+    } catch (error: any) {
+      setLogs(prev => [...prev, `\n[Error: ${error.message}]\n`]);
+      setIsRunning(false);
+    }
+  };
+
+  const stopWorkflow = async () => {
+    try {
+      await axios.post(`${API_BASE}/workflow/stop`);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const sendInteractiveResponse = (char: string) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(char);
+      setShowPrompt(false);
     }
   };
 
@@ -181,11 +292,12 @@ function App() {
 
               <div className="mt-8 flex justify-end relative z-10">
                 <button 
-                  disabled={!selectedFile || !docTitle || !docCategory}
+                  onClick={startWorkflowA}
+                  disabled={!selectedFile || !docTitle || !docCategory || isRunning}
                   className="bg-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#a5b4fc] text-slate-900 font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(180,190,254,0.3)] disabled:shadow-none"
                 >
                   <Play className="w-4 h-4 fill-current" />
-                  Start Generation
+                  {isRunning ? 'Running...' : 'Start Generation'}
                 </button>
               </div>
             </div>
@@ -214,35 +326,93 @@ function App() {
 
               <div className="mt-8 flex justify-end relative z-10">
                 <button 
-                  disabled={!topic}
+                  onClick={startWorkflowB}
+                  disabled={!topic || isRunning}
                   className="bg-[var(--color-secondary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f472b6] text-slate-900 font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(243,139,168,0.3)] disabled:shadow-none"
                 >
                   <Play className="w-4 h-4 fill-current" />
-                  Build Course
+                  {isRunning ? 'Running...' : 'Build Course'}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Download Card */}
+          {downloadUrl && !isRunning && (
+            <div className="glass rounded-2xl p-6 border border-[var(--color-success)]/30 bg-[var(--color-success)]/5 animate-in fade-in slide-in-from-bottom-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-lg text-[var(--color-success)]">Generation Complete!</h3>
+                <p className="text-slate-400 text-sm">Your file is ready to be imported into Moodle.</p>
+              </div>
+              <a 
+                href={downloadUrl} 
+                download
+                className="bg-[var(--color-success)] hover:bg-[#bbf7d0] text-slate-900 font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(166,227,161,0.3)]"
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </a>
             </div>
           )}
         </div>
 
         {/* Live Terminal & Logs */}
-        <div className="glass rounded-2xl border border-white/5 flex flex-col overflow-hidden h-[600px] xl:col-span-1">
-          <div className="bg-slate-900/80 px-4 py-3 flex items-center justify-between border-b border-white/5">
+        <div className="glass rounded-2xl border border-white/5 flex flex-col overflow-hidden h-[600px] xl:col-span-1 relative">
+          <div className="bg-slate-900/80 px-4 py-3 flex items-center justify-between border-b border-white/5 relative z-10">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-[var(--color-error)]" />
               <div className="w-3 h-3 rounded-full bg-[var(--color-warning)]" />
               <div className="w-3 h-3 rounded-full bg-[var(--color-success)]" />
             </div>
-            <span className="text-xs font-mono text-slate-400">pipeline.log</span>
-            <button className="text-slate-400 hover:text-[var(--color-error)] transition-colors" title="Stop execution">
+            <span className="text-xs font-mono text-slate-400 flex items-center gap-2">
+              <TerminalIcon className="w-3 h-3" /> pipeline.log
+            </span>
+            <button 
+              onClick={stopWorkflow}
+              disabled={!isRunning}
+              className="text-slate-400 hover:text-[var(--color-error)] transition-colors disabled:opacity-30" 
+              title="Stop execution"
+            >
               <Square className="w-4 h-4 fill-current" />
             </button>
           </div>
           
-          <div className="flex-1 p-4 font-mono text-sm text-slate-300 overflow-y-auto bg-[#0a0a0f]">
-            <p className="text-slate-500">Waiting for pipeline to start...</p>
-            {/* Terminal lines will go here */}
+          <div className="flex-1 p-4 font-mono text-sm text-slate-300 overflow-y-auto bg-[#0a0a0f] relative">
+            {logs.length === 0 ? (
+              <p className="text-slate-500">Waiting for pipeline to start...</p>
+            ) : (
+              logs.map((log, i) => (
+                <div key={i} className="whitespace-pre-wrap leading-relaxed">{log}</div>
+              ))
+            )}
+            <div ref={logsEndRef} />
           </div>
+
+          {/* Interactive Modal Overlay */}
+          {showPrompt && (
+            <div className="absolute inset-x-0 bottom-0 bg-slate-900/95 backdrop-blur-md border-t border-white/10 p-6 animate-in slide-in-from-bottom-full flex flex-col gap-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-[var(--color-warning)]/20 p-2 rounded-lg">
+                  <Play className="w-5 h-5 text-[var(--color-warning)]" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-white mb-1">User Input Required</h4>
+                  <p className="text-sm text-slate-300">The pipeline has generated questions. How would you like to proceed?</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button onClick={() => sendInteractiveResponse('a')} className="bg-[var(--color-success)]/20 hover:bg-[var(--color-success)]/30 text-[var(--color-success)] border border-[var(--color-success)]/50 rounded-lg py-2 font-medium transition-colors text-sm">
+                  Accept
+                </button>
+                <button onClick={() => sendInteractiveResponse('r')} className="bg-[var(--color-warning)]/20 hover:bg-[var(--color-warning)]/30 text-[var(--color-warning)] border border-[var(--color-warning)]/50 rounded-lg py-2 font-medium transition-colors text-sm">
+                  Regenerate
+                </button>
+                <button onClick={() => sendInteractiveResponse('s')} className="bg-slate-700 hover:bg-slate-600 text-white border border-slate-500 rounded-lg py-2 font-medium transition-colors text-sm">
+                  Skip
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
       </main>
