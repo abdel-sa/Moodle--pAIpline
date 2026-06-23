@@ -1,0 +1,22 @@
+out_build/
+out_build_old_invalid_*/
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+*.egg-info/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+*.err.log
+*.out.log
+backend*.log
+frontend*.log
+
+# Temp files
+input.json
+*.mbz
